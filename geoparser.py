@@ -11,22 +11,25 @@ import descartes
 import sys
 
 
-url = sys.argv[1]
-response = request.urlopen(url)
-raw = response.read().decode('utf-8')
-# print(f'{type(raw)}, \n{len(raw)}, \n{raw[:501]}')
+###########################
+#    helper functions     #
+###########################
 
 
-# eturns city names from raw text
 def get_cities(raw):
+    """
+    Returns city names from raw text
+    """
     places = GeoText(raw)
     cities = list(places.cities)
     return cities
 
 
-# searchs OpenStreetMap API for city coordinates
 def get_coordinates(cities):
-
+    """
+    Searches OpenStreetMap API for each city coordinates
+    Returns list
+    """
     geolocator = Nominatim(user_agent="geoparser", timeout=2)
 
     coordinates = []
@@ -42,8 +45,10 @@ def get_coordinates(cities):
     return coordinates
 
 
-# returns geopandas dataframe from list of coordinates 
 def get_geo_df(coordinates):
+    """
+    Returns geopandas dataframe from list of coordinates 
+    """
     df = pd.DataFrame(coordinates, columns=['City Name', 'Coordinates'])
 
     # switches latitute and longitute order because that's the order my map uses
@@ -52,12 +57,14 @@ def get_geo_df(coordinates):
     # coordinate system I'm using
     crs = {'init': 'epsg:4326'}
 
-    geo_df = gpd.GeoDataFrame(df, crs=crs, geometry=geometry)
+    return gpd.GeoDataFrame(df, crs=crs, geometry=geometry)
 
-    return geo_df
 
-# returns plot of geopandas df geometry series
 def plot_coordinates(geo_df):
+    """
+    Returns plot of geopandas dataframe 'geometry' series
+    """
+
     # world map .shp file 
     countries_map = gpd.read_file('files/Countries_WGS84.shp')
 
@@ -66,7 +73,11 @@ def plot_coordinates(geo_df):
     return geo_df['geometry'].plot(ax=ax, markersize = 30, color = 'b', marker = '^', alpha=.2)
 
 
-# aggregate function
+###########################
+#   aggregate function    #
+###########################
+
+
 def geoparse(raw):
     cities = get_cities(raw)
     lat_lon = get_coordinates(cities)
@@ -75,4 +86,6 @@ def geoparse(raw):
     plt.show(block=True)
 
 
-geoparse(raw)
+with open(sys.argv[1],'r') as raw:
+    raw = raw.read()
+    geoparse(raw)
