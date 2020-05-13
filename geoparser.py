@@ -17,7 +17,7 @@ raw = response.read().decode('utf-8')
 # print(f'{type(raw)}, \n{len(raw)}, \n{raw[:501]}')
 
 
-# takes raw text and returns city names
+# eturns city names from raw text
 def get_cities(raw):
     places = GeoText(raw)
     cities = list(places.cities)
@@ -31,11 +31,10 @@ def get_coordinates(cities):
 
     coordinates = []
 
-    for city in cities[:5]: 
+    for city in cities: 
         try:
             location = geolocator.geocode(city)
             if location:
-                print(location.latitude, location.longitude)
                 coordinates.append(location)
         except GeocoderTimedOut as e:
             print("Error: geocode failed on input %s with message %s"%(city, e))
