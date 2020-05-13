@@ -21,16 +21,24 @@ def get_cities(raw):
     cities = list(places.cities)
     return cities
 
+# searchs OpenStreetMap API for city coordinates
+def get_coordinates(cities):
+    
+    geolocator = Nominatim(user_agent="geoparser", timeout=2)
+
+    lat_lon = []
+    for city in cities[:5]: 
+        try:
+            location = geolocator.geocode(city)
+            if location:
+                print(location.latitude, location.longitude)
+                lat_lon.append(location)
+        except GeocoderTimedOut as e:
+            print("Error: geocode failed on input %s with message %s"%(city, e))
+        
+    return lat_lon
+
+
+
 cities = get_cities(raw)
-
-geolocator = Nominatim(user_agent="geoparser", timeout=2)
-
-lat_lon = []
-for city in cities[:5]: 
-    try:
-        location = geolocator.geocode(city)
-        if location:
-            print(location.latitude, location.longitude)
-            lat_lon.append(location)
-    except GeocoderTimedOut as e:
-        print("Error: geocode failed on input %s with message %s"%(city, e))
+get_coordinates(cities)
