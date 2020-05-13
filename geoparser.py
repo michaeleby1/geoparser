@@ -29,23 +29,23 @@ def get_coordinates(cities):
 
     geolocator = Nominatim(user_agent="geoparser", timeout=2)
 
-    lat_lon = []
+    coordinates = []
 
     for city in cities[:5]: 
         try:
             location = geolocator.geocode(city)
             if location:
                 print(location.latitude, location.longitude)
-                lat_lon.append(location)
+                coordinates.append(location)
         except GeocoderTimedOut as e:
             print("Error: geocode failed on input %s with message %s"%(city, e))
         
-    return lat_lon
+    return coordinates
 
 
 # returns geopandas dataframe from list of coordinates 
 def get_geo_df(coordinates):
-    df = pd.DataFrame(lat_lon, columns=['City Name', 'Coordinates'])
+    df = pd.DataFrame(coordinates, columns=['City Name', 'Coordinates'])
 
     # switches latitute and longitute order because that's the order my map uses
     geometry = [Point(x[1], x[0]) for x in df['Coordinates']]
@@ -57,7 +57,7 @@ def get_geo_df(coordinates):
 
     return geo_df
 
-
+# returns plot of geopandas df geometry series
 def plot_coordinates(geo_df):
     # world map .shp file 
     countries_map = gpd.read_file('files/Countries_WGS84.shp')
@@ -67,8 +67,13 @@ def plot_coordinates(geo_df):
     return geo_df['geometry'].plot(ax=ax, markersize = 30, color = 'b', marker = '^', alpha=.2)
 
 
-cities = get_cities(raw)
-lat_lon = get_coordinates(cities)
-geo_df = get_geo_df(lat_lon)
-plot_coordinates(geo_df)
-plt.show(block=True)
+# aggregate function
+def geoparse(raw):
+    cities = get_cities(raw)
+    lat_lon = get_coordinates(cities)
+    geo_df = get_geo_df(lat_lon)
+    plot_coordinates(geo_df)
+    plt.show(block=True)
+
+
+geoparse(raw)
