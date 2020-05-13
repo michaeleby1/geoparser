@@ -10,23 +10,27 @@ from shapely.geometry import Point, Polygon
 import descartes
 import sys
 
+
 url = sys.argv[1]
 response = request.urlopen(url)
 raw = response.read().decode('utf-8')
 # print(f'{type(raw)}, \n{len(raw)}, \n{raw[:501]}')
 
-# takes raw text and extracts city names
+
+# takes raw text and returns city names
 def get_cities(raw):
     places = GeoText(raw)
     cities = list(places.cities)
     return cities
 
+
 # searchs OpenStreetMap API for city coordinates
 def get_coordinates(cities):
-    
+
     geolocator = Nominatim(user_agent="geoparser", timeout=2)
 
     lat_lon = []
+
     for city in cities[:5]: 
         try:
             location = geolocator.geocode(city)
@@ -39,6 +43,32 @@ def get_coordinates(cities):
     return lat_lon
 
 
+# returns geopandas dataframe from list of coordinates 
+def get_geo_df(coordinates):
+    df = pd.DataFrame(lat_lon, columns=['City Name', 'Coordinates'])
+
+    # switches latitute and longitute order because that's the order my map uses
+    geometry = [Point(x[1], x[0]) for x in df['Coordinates']]
+
+    # coordinate system I'm using
+    crs = {'init': 'epsg:4326'}
+
+    geo_df = gpd.GeoDataFrame(df, crs=crs, geometry=geometry)
+
+    return geo_df
+
+
+def plot_coordinates(geo_df):
+    # world map .shp file 
+    countries_map = gpd.read_file('files/Countries_WGS84.shp')
+
+    f, ax = plt.subplots()
+    countries_map.plot(ax=ax, alpha=0.4, color='grey')
+    return geo_df['geometry'].plot(ax=ax, markersize = 30, color = 'b', marker = '^', alpha=.2)
+
 
 cities = get_cities(raw)
-get_coordinates(cities)
+lat_lon = get_coordinates(cities)
+geo_df = get_geo_df(lat_lon)
+plot_coordinates(geo_df)
+plt.show(block=True)
