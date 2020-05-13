@@ -12,3 +12,6 @@ import descartes
 import sys
 
 url = sys.argv
+response = request.urlopen(url)
+raw = response.read().decode('utf-8')
+print(f'{type(raw)}, \n{len(raw)}, \n{raw[:501]}')
