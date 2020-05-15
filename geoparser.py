@@ -27,7 +27,7 @@ def get_cities(raw):
 
 def get_coordinates(cities):
     """
-    Searches OpenStreetMap API for each city coordinates
+    Searches OpenStreetMap API for city coordinates
     Returns list
     """
     geolocator = Nominatim(user_agent="geoparser", timeout=2)
